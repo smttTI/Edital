@@ -340,7 +340,7 @@
 
         // Função para carregar o arquivo CSV
         function carregarCSV() {
-            fetch('CSV_TMP.csv')  // Altere o caminho para o local correto do seu arquivo CSV
+            fetch('https://raw.githubusercontent.com/smttdev/edital/main/CSV_TMP.csv')  // Altere o caminho para o local correto do seu arquivo CSV
                 .then(response => response.text())
                 .then(text => {
                     dados = processarCSV(text);
@@ -511,3 +511,4 @@
 
 
 </html>
+
