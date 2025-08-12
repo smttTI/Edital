@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Auto SMTT: Consulta Pública de Editais</title>
+    <link rel="icon" href="smtt.png" type="smtt/png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        body {
+            font-family: Roboto;
+            background: #ececec;
+            margin: 0;
+            padding: 0;
+        }
+
+        .top-header {
+            display: flex;
+            padding: 0px 10px;
+            background-color: #052d6d;
+            color: white;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 0 0 20px 0;
+        }
+
+        .logo {
+            height: auto;
+            width: 200px;
+        }
+
+        .top-header h1 {
+            font-size: 22px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .company-name {
+            font-size: 30px;
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
+            letter-spacing: -1px;
+        }
+
+        .container {
+            max-width: 1100px;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin: auto;
+            border-radius: 3px;
+            max-height: 80vh;
+            /* altura máxima igual à altura da tela */
+            overflow: auto;
+            /* adiciona scroll quando necessário */
+
+        }
+
+        .header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .box {
+            background: #e5f3f9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            width: 1075px;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        input:invalid {
+            border-color: rgba(224, 224, 224, 0.699);
+            background-color: #ffffff;
+        }
+
+        .btn {
+            background: #33aadd;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Efeito hover */
+        .btn:hover {
+            background: #0879a9;
+            /* Cor de fundo mais escura quando o mouse passa por cima */
+            color: #ffffff;
+            /* Mantém a cor do texto branca */
+        }
+
+        .btn2 {
+            color: #5e5e5e;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #fff;
+        }
+
+        .btn2:hover {
+            background-color: #49494911;
+            /* Cor de fundo quando o mouse passa por cima */
+            color: rgb(0, 0, 0);
+            /* Muda a cor do texto para branco */
+        }
+
+        .results {
+            margin-top: 20px;
+        }
+
+        .result-item {
+            background: rgb(250, 250, 255);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-text {
+            flex: 1;
+        }
+
+        .download-link {
+            font-size: 24px;
+            text-decoration: none;
+        }
+
+        footer {
+            position: fixed;
+            background-color: #f5ca0c;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            color: #292929;
+        }
+
+        .company-footer {
+            font-size: small;
+            font-weight: bold;
+        }
+
+        .version-footer {
+            font-size: smaller;
+            margin-right: 20px;
+        }
+
+        .download-link {
+            padding: 6px;
+            border-radius: 3px;
+            background-color: #fce4ec;
+            display: inline-block;
+        }
+
+        .download-link:hover {
+            background-color: #f8bbd0;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+        }
+
+        /* Estilo do carregamento */
+        #loading {
+            width: 100%;
+            height: 10px;
+            margin-top: 20px;
+            background-color: #e0e0e0;
+            /* Cor de fundo da barra */
+            border-radius: 5px;
+            /* Arredondamento das bordas da barra */
+        }
+
+        #loading::-webkit-progress-bar {
+            background-color: #f0f0f0;
+            /* Cor de fundo da barra (quando não está preenchida) */
+            border-radius: 5px;
+        }
+
+        #loading::-webkit-progress-value {
+            background-color: #33aadd;
+            /* Cor da parte preenchida da barra */
+            border-radius: 5px;
+        }
+
+        #loading::-moz-progress-bar {
+            background-color: #2783aa;
+            /* Cor da parte preenchida da barra para Firefox */
+            border-radius: 5px;
+        }
+
+        #campoData {
+            display: flex;
+            gap: 20px;
+            /* Espaçamento entre os campos */
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            gap: 5px;
+            /* Ajuste o espaço entre o label e o campo de entrada */
+        }
+
+        .floating-label {
+            margin-right: 3px;
+            color: #000000;
+            /* Cor cinza claro */
+
+        }
+
+
+        input[type="date"] {
+            flex-grow: 1;
+            /* Faz o campo de entrada ocupar o restante do espaço disponível */
+        }
+
+        .input-group input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .input-group input::placeholder {
+            color: #aaaaaa;
+            font-style: italic;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <header class="top-header">
+        <a href="/index.html">
+            <img src="smtt.png" alt="Logo da Empresa" class="logo">
+        </a>
+        <span class="company-name"> Auto SMTT</span>
+    </header>
+
+    <!-- Aqui fica o HTML -->
+    <div class="container">
+        <div class="header"><i class="fa fa-search"></i> Consultar Editais</div>
+        <hr>
+        <form onsubmit="buscar(event)" novalidate>
+            <div class="box">
+                <label>Informe o tipo de argumento pelo qual deseja pesquisar:</label><br />
+                <input type="radio" name="tipo" value="placa" checked> Placa
+                <input type="radio" name="tipo" value="numero"> Número
+                <input type="radio" name="tipo" value="data"> Data
+            </div>
+            <label id="inputLabel">Placa</label>
+            <div id="campoBusca">
+                <input type="text" id="inputBusca" name="inputBusca" placeholder="Digite o valor..." required />
+            </div>
+            <small id="placaAviso" style="color: red; display: none;">* Digite apenas letras e números, sem hífen.</small>
+            <!-- Campos para data, inicialmente ocultos -->
+            <div id="campoData" style="display: none;">
+                <div class="input-group">
+                    <label for="dataInicio" class="floating-label">De:</label>
+                    <input type="date" id="dataInicio" name="dataInicio" placeholder="De">
+                </div>
+                <div class="input-group">
+                    <label for="dataFim" class="floating-label">Até:</label>
+                    <input type="date" id="dataFim" name="dataFim" placeholder="Até">
+                </div>
+            </div>
+            <button type="submit" class="btn"><i class="fa fa-search"></i> Pesquisar</button>
+        </form>
+        <!--
+        <div style="text-align: center; margin-top: 10px;">
+            <button class="btn2" onclick="mostrarTodos()">📋 Ver Lista Completa</button>
+        </div>
+            -->
+        <!-- Aqui fica o indicativo de carregamento -->
+        <div id="loading-container" style="display: none;">
+            <progress id="loading" value="0" max="100"></progress>
+            <span>Carregando...</span>
+        </div>
+        <div class="results" id="resultados"></div>
+    </div>
+    <!-- Aqui fica o FOOTER -->
+    <footer class="footer">
+        <span class="company-footer">Auto SMTT</span>
+        <span class="version-footer">versão: 1.0.1</span>
+    </footer>
+
+    <script>
+        let dados = [];
+
+        function alterarLabel() {
+            const radioButtons = document.querySelectorAll('input[name="tipo"]');
+            const labelBusca = document.getElementById('inputLabel');  // Label do campo de busca
+            const campoBusca = document.getElementById('campoBusca');  // Campo de busca
+            const campoData = document.getElementById('campoData');  // Campo de data
+
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.checked) {
+                        // Atualiza o texto do label com o valor do radio button
+                        labelBusca.textContent = radio.value === 'data' ? 'Período' : radio.value.charAt(0).toUpperCase() + radio.value.slice(1);
+                        // Exibe o campo de busca apropriado
+                        if (radio.value === 'data') {
+                            campoBusca.style.display = 'none';  // Esconde o campo de texto
+                            campoData.style.display = 'flex';   // Exibe o campo de data
+                        } else {
+                            campoBusca.style.display = 'block'; // Exibe o campo de texto
+                            campoData.style.display = 'none';   // Esconde o campo de data
+                        }
+                    }
+                });
+            });
+        }
+
+        // Função para carregar o arquivo CSV
+        function carregarCSV() {
+            fetch('CSV_TMP.csv')  // Altere o caminho para o local correto do seu arquivo CSV
+                .then(response => response.text())
+                .then(text => {
+                    dados = processarCSV(text);
+                    console.log("Dados processados:", dados);  // Verifique se os dados estão corretos                    
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar o CSV:', error);
+                });
+        }
+
+        // Função para processar o CSV
+        function processarCSV(csv) {
+            const linhas = csv.split('\n');
+            const resultado = [];
+
+            for (let i = 1; i < linhas.length; i++) {  // Começa em 1 para ignorar o cabeçalho
+                const colunas = linhas[i].split(',');
+
+                if (colunas.length > 1) {
+                    resultado.push({
+                        placa: colunas[0].replace(/"/g, '').trim(),// Placa
+                        numero: colunas[1].replace(/"/g, '').trim(),// Número do Auto (campo "auto")
+                        data: colunas[2].replace(/"/g, '').trim(), // Data de comet (campo "datacomet")
+                    });
+                }
+            }
+            console.log("Dados carregados:", resultado); // Verifique os dados carregados
+            return resultado;
+        }
+
+        /*function mostrarTodos() {
+            // Exibe o loading
+            const loadingContainer = document.getElementById("loading-container");
+            loadingContainer.style.display = "block"; // Mostra o container do loading            
+            const loadingBar = document.getElementById("loading");
+            let progress = 0;
+
+            // Atualiza a barra de progresso enquanto os dados são exibidos
+            const interval = setInterval(function () {
+                progress += 1; // Incrementa em 1 para um progresso suave
+                // Garante que a barra chegue exatamente a 100%
+                if (progress > 100) progress = 100;  // Impede que a barra passe de 100%
+                loadingBar.value = progress;
+                // Quando a barra chega a 100%, os dados são exibidos imediatamente
+                if (progress === 100) {
+                    clearInterval(interval); // Para a animação da barra de progresso
+
+                    // Exibe os dados carregados imediatamente após a barra atingir 100%
+                    const resultados = document.getElementById('resultados');
+                    resultados.innerHTML = dados.map(item =>
+                        `<div class="result-item">
+                            <div class="result-text">
+                                <strong>Placa:</strong> ${item.placa}<br />
+                                <strong>Número:</strong> ${item.numero}<br />
+                                <strong>Data:</strong> ${item.data}
+                            </div>
+                            <a href="arquivos/${item.placa}.pdf" class="download-link" title="Baixar PDF" download>
+                                <small style="font-size: 10px;">PDF</small>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#d32f2f" viewBox="0 0 24 24">
+                                    <path d="M6 2a2 2 0 0 0-2 2v16c0 1.103.897 2 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.414L18.586 9H13V3.414zM8 13h1.5v6H8v-6zm3 .5c0-.276.224-.5.5-.5h1.5a1.5 1.5 0 1 1 0 3H12v3h-1.5v-6zm1.5 2c.276 0 .5-.224.5-.5s-.224-.5-.5-.5H12v1h.5zM17 13h-2v6h2a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1zm-.5 5h-0.5v-4h0.5v4z"/>
+                                </svg>
+                            </a>
+                        </div>`
+                    ).join('');
+                    // Esconde o loading após exibir os dados
+                    loadingContainer.style.display = "none"; // Esconde o container de loading
+                }
+            }, 50);  // Atualiza a barra a cada 50ms para um progresso suave
+        }*/
+
+        // Função de pesquisa 
+        function buscar(event) {
+            event.preventDefault(); // Impede o envio padrão do formulário
+
+            const tipo = document.querySelector('input[name="tipo"]:checked').value;
+
+            // Corrige obrigatoriedade dos campos
+            const dataInicio = document.getElementById('dataInicio');
+            const dataFim = document.getElementById('dataFim');
+            const inputBusca = document.getElementById('inputBusca');
+
+            const isDataSearch = tipo === 'data';
+            const isValid =
+                (isDataSearch && dataInicio.value.trim() !== '' && dataFim.value.trim() !== '') ||
+                (!isDataSearch && inputBusca.value.trim() !== '');
+
+            // Se os campos obrigatórios não estiverem preenchidos, sai da função sem fazer nada
+            if (!isValid) {
+                return;
+            }
+
+            // Exibe o loading
+            const loadingElement = document.getElementById("loading-container");
+            loadingElement.style.display = "block";
+
+            let encontrados = [];
+
+            if (isDataSearch) {
+                const formatarDataInputParaISO = dataInput => {
+                    const [ano, mes, dia] = dataInput.split('-');
+                    return `${ano}${mes}${dia}`;
+                };
+
+                const dataInicioValor = formatarDataInputParaISO(dataInicio.value.trim());
+                const dataFimValor = formatarDataInputParaISO(dataFim.value.trim());
+
+                console.log("Filtrando entre:", dataInicioValor, "e", dataFimValor);
+
+                encontrados = dados.filter(item => {
+                    const dItem = item.data.trim();
+                    return dItem >= dataInicioValor && dItem <= dataFimValor;
+                });
+            } else {
+                const valor = inputBusca.value.trim().toLowerCase();
+
+                if (tipo === 'numero') {
+                    encontrados = dados.filter(item => item.numero.toLowerCase().includes(valor));
+                } else {
+                    encontrados = dados.filter(item => item[tipo].toLowerCase().includes(valor));
+                }
+            }
+
+            // Atualiza os resultados com animação de loading
+            const resultados = document.getElementById('resultados');
+            const loadingBar = document.getElementById("loading");
+            let progress = 0;
+
+            const interval = setInterval(function () {
+                progress += 2;
+                if (progress > 100) progress = 100;
+                loadingBar.value = progress;
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+
+                    resultados.innerHTML = encontrados.length
+                        ? encontrados.map(item =>
+                            `<div class="result-item">
+                        <div class="result-text">
+                            <strong>Placa:</strong> ${item.placa}<br />
+                            <strong>Número do Edital:</strong> ${item.numero}<br />
+                            <strong>Data de Publicação:</strong> ${item.data}
+                        </div>
+                        <a href="arquivos/${item.placa}.pdf" class="download-link" title="Baixar PDF" download style="display: flex; align-items: center; gap: 4px;">
+                            <small style="font-size: 10px;">PDF</small>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#d32f2f" viewBox="0 0 24 24">
+                                <path d="M6 2a2 2 0 0 0-2 2v16c0 1.103.897 2 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.414L18.586 9H13V3.414zM8 13h1.5v6H8v-6zm3 .5c0-.276.224-.5.5-.5h1.5a1.5 1.5 0 1 1 0 3H12v3h-1.5v-6zm1.5 2c.276 0 .5-.224.5-.5s-.224-.5-.5-.5H12v1h.5zM17 13h-2v6h2a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1zm-.5 5h-0.5v-4h0.5v4z"/>
+                            </svg>
+                        </a>
+                    </div>`
+                        ).join('')
+                        : '<div class="result-item">Nenhum resultado encontrado.</div>';
+
+                    loadingElement.style.display = "none"; // Esconde o loading após exibir os resultados
+                }
+            }, 20);
+        }
+
+
+        // Carregar CSV quando a página for carregada
+        window.onload = function () {
+            carregarCSV();
+            alterarLabel();
+        };
+    </script>
+
+</body>
+
+</html>
