@@ -53,7 +53,9 @@
             margin: auto;
             border-radius: 3px;
             max-height: 80vh;
-           
+            /* altura máxima igual à altura da tela */
+            overflow: auto;
+            /* adiciona scroll quando necessário */
 
         }
 
@@ -272,14 +274,15 @@
             <div class="box">
                 <label>Informe o tipo de argumento pelo qual deseja pesquisar:</label><br />
                 <input type="radio" name="tipo" value="placa" checked> Placa
-                <input type="radio" name="tipo" value="numero"> Número
-                <input type="radio" name="tipo" value="data"> Data
+                <input type="radio" name="tipo" value="numero"> Número do Auto
+                <input type="radio" name="tipo" value="data"> Data de Cometimento
             </div>
             <label id="inputLabel">Placa</label>
             <div id="campoBusca">
                 <input type="text" id="inputBusca" name="inputBusca" placeholder="Digite o valor..." required />
             </div>
-            <small id="placaAviso" style="color: red; display: none;">* Digite apenas letras e números, sem hífen.</small>
+            <small id="placaAviso" style="color: red; display: none;">* Digite apenas letras e números, sem
+                hífen.</small>
             <!-- Campos para data, inicialmente ocultos -->
             <div id="campoData" style="display: none;">
                 <div class="input-group">
@@ -316,154 +319,180 @@
 
         function alterarLabel() {
             const radioButtons = document.querySelectorAll('input[name="tipo"]');
-            const labelBusca = document.getElementById('inputLabel');  // Label do campo de busca
-            const campoBusca = document.getElementById('campoBusca');  // Campo de busca
-            const campoData = document.getElementById('campoData');  // Campo de data
+            const labelBusca = document.getElementById('inputLabel');
+            const campoBusca = document.getElementById('campoBusca');
+            const campoData = document.getElementById('campoData');
 
             radioButtons.forEach(radio => {
                 radio.addEventListener('change', () => {
                     if (radio.checked) {
-                        // Atualiza o texto do label com o valor do radio button
                         labelBusca.textContent = radio.value === 'data' ? 'Período' : radio.value.charAt(0).toUpperCase() + radio.value.slice(1);
-                        // Exibe o campo de busca apropriado
                         if (radio.value === 'data') {
-                            campoBusca.style.display = 'none';  // Esconde o campo de texto
-                            campoData.style.display = 'flex';   // Exibe o campo de data
+                            campoBusca.style.display = 'none';
+                            campoData.style.display = 'flex';
                         } else {
-                            campoBusca.style.display = 'block'; // Exibe o campo de texto
-                            campoData.style.display = 'none';   // Esconde o campo de data
+                            campoBusca.style.display = 'block';
+                            campoData.style.display = 'none';
                         }
                     }
                 });
             });
         }
 
-        // Função para carregar o arquivo CSV
+        // Normaliza datas para AAAAMMDD (string) ou retorna "" se inválida.
+        function toISODate(str) {
+            if (!str) return "";
+            const s = ("" + str).trim();
+
+            // já no formato AAAA-MM-DD / AAAA/MM/DD
+            if (/^\d{4}[-\/]\d{2}[-\/]\d{2}$/.test(s)) {
+                const [y, m, d] = s.split(/[-\/]/);
+                return y + m + d;
+            }
+
+            // formato DD/MM/AAAA ou DD-MM-AAAA
+            if (/^\d{2}[-\/]\d{2}[-\/]\d{4}$/.test(s)) {
+                const [d, m, y] = s.split(/[-\/]/);
+                return y + m + d;
+            }
+
+            // DDMMAAAA (sem separador)
+            if (/^\d{8}$/.test(s)) {
+                const yFirst = s.slice(0, 4);
+                const likelyYear = parseInt(yFirst, 10);
+                if (likelyYear >= 1900) {
+                    // AAAAMMDD
+                    return s;
+                } else {
+                    // DDMMAAAA -> AAAAMMDD
+                    const d = s.slice(0, 2), m = s.slice(2, 4), y = s.slice(4, 8);
+                    return y + m + d;
+                }
+            }
+
+            // Outros casos: tenta extrair números e decidir
+            const parts = s.split(/[^0-9]/).filter(Boolean);
+            if (parts.length === 3) {
+                let [a, b, c] = parts; // pode ser AAAA MM DD ou DD MM AAAA
+                if (a.length === 4) {
+                    // AAAA MM DD
+                    return a.padStart(4, '0') + b.padStart(2, '0') + c.padStart(2, '0');
+                }
+                if (c.length === 4) {
+                    // DD MM AAAA
+                    return c.padStart(4, '0') + b.padStart(2, '0') + a.padStart(2, '0');
+                }
+            }
+
+            return "";
+        }
+
+        // Converte <input type="date"> (AAAA-MM-DD) para AAAAMMDD
+        function inputDateToISO(value) {
+            if (!value) return "";
+            const [y, m, d] = value.split("-");
+            return (y && m && d) ? (y + m + d) : "";
+        }
+
+        // Carrega CSV
         function carregarCSV() {
-            fetch('https://raw.githubusercontent.com/SMTTDEV/Edital/main/CSV_TMP.CSV')  // Altere o caminho para o local correto do seu arquivo CSV
+            fetch('edtnotificacao.csv')
                 .then(response => response.text())
                 .then(text => {
                     dados = processarCSV(text);
-                    console.log("Dados processados:", dados);  // Verifique se os dados estão corretos                    
+                    console.log("Dados processados:", dados);
                 })
                 .catch(error => {
                     console.error('Erro ao carregar o CSV:', error);
                 });
         }
 
-        // Função para processar o CSV
+        // Processa CSV e adiciona data normalizada (dataISO)
         function processarCSV(csv) {
             const linhas = csv.split('\n');
             const resultado = [];
 
-            for (let i = 1; i < linhas.length; i++) {  // Começa em 1 para ignorar o cabeçalho
+            for (let i = 1; i < linhas.length; i++) { // pula cabeçalho
                 const colunas = linhas[i].split(',');
 
                 if (colunas.length > 1) {
+                    const placa = (colunas[0] || "").replace(/"/g, '').trim();
+                    const numero = (colunas[1] || "").replace(/"/g, '').trim();
+                    const dataBruta = (colunas[2] || "").replace(/"/g, '').trim();
+                    const codigo = (colunas[3] || "").replace(/"/g, '').trim();
+                    const lote = (colunas[colunas.length - 1] || '').replace(/"/g, '').trim().replace(/\r/g, '');
+
+                    const dataISO = toISODate(dataBruta); // <<< aqui normaliza
+
                     resultado.push({
-                        placa: colunas[0].replace(/"/g, '').trim(),// Placa
-                        numero: colunas[1].replace(/"/g, '').trim(),// Número do Auto (campo "auto")
-                        data: colunas[2].replace(/"/g, '').trim(), // Data de comet (campo "datacomet")
+                        placa,
+                        numero,
+                        data: dataBruta,  // mantém original para exibir
+                        dataISO,          // usa para filtrar
+                        codigo,
+                        lote
                     });
                 }
             }
-            console.log("Dados carregados:", resultado); // Verifique os dados carregados
             return resultado;
         }
 
-        /*function mostrarTodos() {
-            // Exibe o loading
-            const loadingContainer = document.getElementById("loading-container");
-            loadingContainer.style.display = "block"; // Mostra o container do loading            
-            const loadingBar = document.getElementById("loading");
-            let progress = 0;
-
-            // Atualiza a barra de progresso enquanto os dados são exibidos
-            const interval = setInterval(function () {
-                progress += 1; // Incrementa em 1 para um progresso suave
-                // Garante que a barra chegue exatamente a 100%
-                if (progress > 100) progress = 100;  // Impede que a barra passe de 100%
-                loadingBar.value = progress;
-                // Quando a barra chega a 100%, os dados são exibidos imediatamente
-                if (progress === 100) {
-                    clearInterval(interval); // Para a animação da barra de progresso
-
-                    // Exibe os dados carregados imediatamente após a barra atingir 100%
-                    const resultados = document.getElementById('resultados');
-                    resultados.innerHTML = dados.map(item =>
-                        `<div class="result-item">
-                            <div class="result-text">
-                                <strong>Placa:</strong> ${item.placa}<br />
-                                <strong>Número:</strong> ${item.numero}<br />
-                                <strong>Data:</strong> ${item.data}
-                            </div>
-                            <a href="arquivos/${item.placa}.pdf" class="download-link" title="Baixar PDF" download>
-                                <small style="font-size: 10px;">PDF</small>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#d32f2f" viewBox="0 0 24 24">
-                                    <path d="M6 2a2 2 0 0 0-2 2v16c0 1.103.897 2 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.414L18.586 9H13V3.414zM8 13h1.5v6H8v-6zm3 .5c0-.276.224-.5.5-.5h1.5a1.5 1.5 0 1 1 0 3H12v3h-1.5v-6zm1.5 2c.276 0 .5-.224.5-.5s-.224-.5-.5-.5H12v1h.5zM17 13h-2v6h2a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1zm-.5 5h-0.5v-4h0.5v4z"/>
-                                </svg>
-                            </a>
-                        </div>`
-                    ).join('');
-                    // Esconde o loading após exibir os dados
-                    loadingContainer.style.display = "none"; // Esconde o container de loading
-                }
-            }, 50);  // Atualiza a barra a cada 50ms para um progresso suave
-        }*/
-
-        // Função de pesquisa 
+        // Pesquisa
         function buscar(event) {
-            event.preventDefault(); // Impede o envio padrão do formulário
+            event.preventDefault();
 
             const tipo = document.querySelector('input[name="tipo"]:checked').value;
-
-            // Corrige obrigatoriedade dos campos
-            const dataInicio = document.getElementById('dataInicio');
-            const dataFim = document.getElementById('dataFim');
+            const dataInicioEl = document.getElementById('dataInicio');
+            const dataFimEl = document.getElementById('dataFim');
             const inputBusca = document.getElementById('inputBusca');
 
-            const isDataSearch = tipo === 'data';
+            const isDataSearch = (tipo === 'data');
             const isValid =
-                (isDataSearch && dataInicio.value.trim() !== '' && dataFim.value.trim() !== '') ||
+                (isDataSearch && dataInicioEl.value.trim() !== '' && dataFimEl.value.trim() !== '') ||
                 (!isDataSearch && inputBusca.value.trim() !== '');
 
-            // Se os campos obrigatórios não estiverem preenchidos, sai da função sem fazer nada
-            if (!isValid) {
-                return;
-            }
+            if (!isValid) return;
 
-            // Exibe o loading
             const loadingElement = document.getElementById("loading-container");
             loadingElement.style.display = "block";
 
             let encontrados = [];
 
             if (isDataSearch) {
-                const formatarDataInputParaISO = dataInput => {
-                    const [ano, mes, dia] = dataInput.split('-');
-                    return `${ano}${mes}${dia}`;
-                };
+                let inicio = inputDateToISO(dataInicioEl.value.trim());
+                let fim = inputDateToISO(dataFimEl.value.trim());
 
-                const dataInicioValor = formatarDataInputParaISO(dataInicio.value.trim());
-                const dataFimValor = formatarDataInputParaISO(dataFim.value.trim());
+                // Se usuário inverteu, corrige
+                if (inicio && fim && inicio > fim) {
+                    const tmp = inicio;
+                    inicio = fim;
+                    fim = tmp;
+                }
 
-                console.log("Filtrando entre:", dataInicioValor, "e", dataFimValor);
+                console.log("Filtrando entre (ISO):", inicio, "e", fim);
 
                 encontrados = dados.filter(item => {
-                    const dItem = item.data.trim();
-                    return dItem >= dataInicioValor && dItem <= dataFimValor;
+                    const d = item.dataISO || "";
+                    // exige data válida no item
+                    if (!d) return false;
+                    // intervalo inclusivo
+                    return (d >= inicio && d <= fim);
                 });
+                // ORDENAÇÃO: do menor (início) para o maior (fim)
+                encontrados.sort((a, b) => a.dataISO.localeCompare(b.dataISO));
+
             } else {
                 const valor = inputBusca.value.trim().toLowerCase();
 
                 if (tipo === 'numero') {
-                    encontrados = dados.filter(item => item.numero.toLowerCase().includes(valor));
+                    encontrados = dados.filter(item => (item.numero || '').toLowerCase().includes(valor));
                 } else {
-                    encontrados = dados.filter(item => item[tipo].toLowerCase().includes(valor));
+                    // 'placa'
+                    encontrados = dados.filter(item => (item.placa || '').toLowerCase().includes(valor));
                 }
             }
 
-            // Atualiza os resultados com animação de loading
+            // Atualiza resultados com a barrinha
             const resultados = document.getElementById('resultados');
             const loadingBar = document.getElementById("loading");
             let progress = 0;
@@ -479,37 +508,45 @@
                     resultados.innerHTML = encontrados.length
                         ? encontrados.map(item =>
                             `<div class="result-item">
-                        <div class="result-text">
-                            <strong>Placa:</strong> ${item.placa}<br />
-                            <strong>Número do Edital:</strong> ${item.numero}<br />
-                            <strong>Data de Publicação:</strong> ${item.data}
-                        </div>
-                        <a href="arquivos/${item.placa}.pdf" class="download-link" title="Baixar PDF" download style="display: flex; align-items: center; gap: 4px;">
-                            <small style="font-size: 10px;">PDF</small>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#d32f2f" viewBox="0 0 24 24">
-                                <path d="M6 2a2 2 0 0 0-2 2v16c0 1.103.897 2 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.414L18.586 9H13V3.414zM8 13h1.5v6H8v-6zm3 .5c0-.276.224-.5.5-.5h1.5a1.5 1.5 0 1 1 0 3H12v3h-1.5v-6zm1.5 2c.276 0 .5-.224.5-.5s-.224-.5-.5-.5H12v1h.5zM17 13h-2v6h2a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1zm-.5 5h-0.5v-4h0.5v4z"/>
-                            </svg>
-                        </a>
-                    </div>`
+              <div class="result-text">
+                <strong>Placa:</strong> ${item.placa}<br />
+                <strong>Número do Auto:</strong> ${item.numero}<br />
+                <strong>Data de Cometimento:</strong> ${formatarDataBr(item.dataISO)}<br />
+                <strong>Código da Infração:</strong> ${item.codigo || '-'}
+              </div>
+              <a href="/${(item.lote || '').trim()}.pdf"
+                 class="download-link" title="Baixar PDF" download
+                 style="display: flex; align-items: center; gap: 4px;">
+                 <small style="font-size: 10px;">PDF</small>
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#d32f2f" viewBox="0 0 24 24">
+                   <path d="M6 2a2 2 0 0 0-2 2v16c0 1.103.897 2 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.414L18.586 9H13V3.414zM8 13h1.5v6H8v-6zm3 .5c0-.276.224-.5.5-.5h1.5a1.5 1.5 0 1 1 0 3H12v3h-1.5v-6zm1.5 2c.276 0 .5-.224.5-.5s-.224-.5-.5-.5H12v1h.5zM17 13h-2v6h2a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1zm-.5 5h-0.5v-4h0.5v4z"/>
+                 </svg>
+              </a>
+            </div>`
                         ).join('')
                         : '<div class="result-item">Nenhum resultado encontrado.</div>';
 
-                    loadingElement.style.display = "none"; // Esconde o loading após exibir os resultados
+                    loadingElement.style.display = "none";
                 }
             }, 20);
         }
 
-
-        // Carregar CSV quando a página for carregada
         window.onload = function () {
             carregarCSV();
             alterarLabel();
         };
+
+        // Converte de AAAAMMDD para DD/MM/AAAA
+        function formatarDataBr(iso) {
+            if (!iso || iso.length !== 8) return iso || "-";
+            const ano = iso.substring(0, 4);
+            const mes = iso.substring(4, 6);
+            const dia = iso.substring(6, 8);
+            return `${dia}/${mes}/${ano}`;
+        }
     </script>
+
 
 </body>
 
-
 </html>
-
-
