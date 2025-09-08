@@ -53,10 +53,7 @@
             margin: auto;
             border-radius: 3px;
             max-height: 80vh;
-            /* altura máxima igual à altura da tela */
             overflow: auto;
-            /* adiciona scroll quando necessário */
-
         }
 
         .header {
@@ -96,12 +93,9 @@
             margin-top: 10px;
         }
 
-        /* Efeito hover */
         .btn:hover {
             background: #0879a9;
-            /* Cor de fundo mais escura quando o mouse passa por cima */
             color: #ffffff;
-            /* Mantém a cor do texto branca */
         }
 
         .btn2 {
@@ -115,9 +109,7 @@
 
         .btn2:hover {
             background-color: #49494911;
-            /* Cor de fundo quando o mouse passa por cima */
             color: rgb(0, 0, 0);
-            /* Muda a cor do texto para branco */
         }
 
         .results {
@@ -187,39 +179,32 @@
             flex: 1;
         }
 
-        /* Estilo do carregamento */
         #loading {
             width: 100%;
             height: 10px;
             margin-top: 20px;
             background-color: #e0e0e0;
-            /* Cor de fundo da barra */
             border-radius: 5px;
-            /* Arredondamento das bordas da barra */
         }
 
         #loading::-webkit-progress-bar {
             background-color: #f0f0f0;
-            /* Cor de fundo da barra (quando não está preenchida) */
             border-radius: 5px;
         }
 
         #loading::-webkit-progress-value {
             background-color: #33aadd;
-            /* Cor da parte preenchida da barra */
             border-radius: 5px;
         }
 
         #loading::-moz-progress-bar {
             background-color: #2783aa;
-            /* Cor da parte preenchida da barra para Firefox */
             border-radius: 5px;
         }
 
         #campoData {
             display: flex;
             gap: 20px;
-            /* Espaçamento entre os campos */
         }
 
         .input-group {
@@ -227,20 +212,15 @@
             align-items: center;
             width: 100%;
             gap: 5px;
-            /* Ajuste o espaço entre o label e o campo de entrada */
         }
 
         .floating-label {
             margin-right: 3px;
             color: #000000;
-            /* Cor cinza claro */
-
         }
-
 
         input[type="date"] {
             flex-grow: 1;
-            /* Faz o campo de entrada ocupar o restante do espaço disponível */
         }
 
         .input-group input {
@@ -254,7 +234,6 @@
             font-style: italic;
         }
     </style>
-
 </head>
 
 <body>
@@ -266,7 +245,6 @@
         <span class="company-name"> Auto SMTT</span>
     </header>
 
-    <!-- Aqui fica o HTML -->
     <div class="container">
         <div class="header"><i class="fa fa-search"></i> Consultar Editais</div>
         <hr>
@@ -283,7 +261,6 @@
             </div>
             <small id="placaAviso" style="color: red; display: none;">* Digite apenas letras e números, sem
                 hífen.</small>
-            <!-- Campos para data, inicialmente ocultos -->
             <div id="campoData" style="display: none;">
                 <div class="input-group">
                     <label for="dataInicio" class="floating-label">De:</label>
@@ -296,22 +273,16 @@
             </div>
             <button type="submit" class="btn"><i class="fa fa-search"></i> Pesquisar</button>
         </form>
-        <!--
-        <div style="text-align: center; margin-top: 10px;">
-            <button class="btn2" onclick="mostrarTodos()">📋 Ver Lista Completa</button>
-        </div>
-            -->
-        <!-- Aqui fica o indicativo de carregamento -->
         <div id="loading-container" style="display: none;">
             <progress id="loading" value="0" max="100"></progress>
             <span>Carregando...</span>
         </div>
         <div class="results" id="resultados"></div>
     </div>
-    <!-- Aqui fica o FOOTER -->
+
     <footer class="footer">
         <span class="company-footer">Auto SMTT</span>
-        <span class="version-footer">versão: 1.0.1</span>
+        <span class="version-footer">versão: 1.0.2</span>
     </footer>
 
     <script>
@@ -326,93 +297,71 @@
             radioButtons.forEach(radio => {
                 radio.addEventListener('change', () => {
                     if (radio.checked) {
-                        labelBusca.textContent = radio.value === 'data' ? 'Período' : radio.value.charAt(0).toUpperCase() + radio.value.slice(1);
-                        if (radio.value === 'data') {
-                            campoBusca.style.display = 'none';
-                            campoData.style.display = 'flex';
-                        } else {
-                            campoBusca.style.display = 'block';
-                            campoData.style.display = 'none';
-                        }
+                        labelBusca.textContent = radio.value === 'data'
+                            ? 'Período'
+                            : radio.value.charAt(0).toUpperCase() + radio.value.slice(1);
+                        campoBusca.style.display = (radio.value === 'data') ? 'none' : 'block';
+                        campoData.style.display = (radio.value === 'data') ? 'flex' : 'none';
                     }
                 });
             });
         }
 
-        // Normaliza datas para AAAAMMDD (string) ou retorna "" se inválida.
         function toISODate(str) {
             if (!str) return "";
             const s = ("" + str).trim();
 
-            // já no formato AAAA-MM-DD / AAAA/MM/DD
             if (/^\d{4}[-\/]\d{2}[-\/]\d{2}$/.test(s)) {
                 const [y, m, d] = s.split(/[-\/]/);
                 return y + m + d;
             }
 
-            // formato DD/MM/AAAA ou DD-MM-AAAA
             if (/^\d{2}[-\/]\d{2}[-\/]\d{4}$/.test(s)) {
                 const [d, m, y] = s.split(/[-\/]/);
                 return y + m + d;
             }
 
-            // DDMMAAAA (sem separador)
             if (/^\d{8}$/.test(s)) {
                 const yFirst = s.slice(0, 4);
                 const likelyYear = parseInt(yFirst, 10);
                 if (likelyYear >= 1900) {
-                    // AAAAMMDD
                     return s;
                 } else {
-                    // DDMMAAAA -> AAAAMMDD
                     const d = s.slice(0, 2), m = s.slice(2, 4), y = s.slice(4, 8);
                     return y + m + d;
                 }
             }
 
-            // Outros casos: tenta extrair números e decidir
             const parts = s.split(/[^0-9]/).filter(Boolean);
             if (parts.length === 3) {
-                let [a, b, c] = parts; // pode ser AAAA MM DD ou DD MM AAAA
-                if (a.length === 4) {
-                    // AAAA MM DD
-                    return a.padStart(4, '0') + b.padStart(2, '0') + c.padStart(2, '0');
-                }
-                if (c.length === 4) {
-                    // DD MM AAAA
-                    return c.padStart(4, '0') + b.padStart(2, '0') + a.padStart(2, '0');
-                }
+                let [a, b, c] = parts;
+                if (a.length === 4) return a + b.padStart(2, '0') + c.padStart(2, '0');
+                if (c.length === 4) return c + b.padStart(2, '0') + a.padStart(2, '0');
             }
-
             return "";
         }
 
-        // Converte <input type="date"> (AAAA-MM-DD) para AAAAMMDD
         function inputDateToISO(value) {
             if (!value) return "";
             const [y, m, d] = value.split("-");
             return (y && m && d) ? (y + m + d) : "";
         }
 
-        // Carrega CSV
         function carregarCSV() {
-            fetch('edtnotificacao.csv')
+            fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTZD4Y_N1y4eogFmOzF-2SLF47cyiCL-f6TWjd_eAhlzJds8ih9Jjmf0K-GMI22bdUtEAoQsEce4OGt/pub?output=csv')
                 .then(response => response.text())
                 .then(text => {
                     dados = processarCSV(text);
                     console.log("Dados processados:", dados);
                 })
-                .catch(error => {
-                    console.error('Erro ao carregar o CSV:', error);
-                });
+                .catch(error => console.error('Erro ao carregar CSV:', error));
         }
 
-        // Processa CSV e adiciona data normalizada (dataISO)
         function processarCSV(csv) {
             const linhas = csv.split('\n');
             const resultado = [];
 
-            for (let i = 1; i < linhas.length; i++) { // pula cabeçalho
+            for (let i = 1; i < linhas.length; i++) {
                 const colunas = linhas[i].split(',');
 
                 if (colunas.length > 1) {
@@ -420,24 +369,17 @@
                     const numero = (colunas[1] || "").replace(/"/g, '').trim();
                     const dataBruta = (colunas[2] || "").replace(/"/g, '').trim();
                     const codigo = (colunas[3] || "").replace(/"/g, '').trim();
-                    const lote = (colunas[colunas.length - 1] || '').replace(/"/g, '').trim().replace(/\r/g, '');
+                    const lote = (colunas[4] || '').replace(/"/g, '').trim().replace(/\r/g, '');
+                    const pdfLink = (colunas[5] || '').replace(/"/g, '').trim();
 
-                    const dataISO = toISODate(dataBruta); // <<< aqui normaliza
+                    const dataISO = toISODate(dataBruta);
 
-                    resultado.push({
-                        placa,
-                        numero,
-                        data: dataBruta,  // mantém original para exibir
-                        dataISO,          // usa para filtrar
-                        codigo,
-                        lote
-                    });
+                    resultado.push({ placa, numero, data: dataBruta, dataISO, codigo, lote, pdfLink });
                 }
             }
             return resultado;
         }
 
-        // Pesquisa
         function buscar(event) {
             event.preventDefault();
 
@@ -462,37 +404,19 @@
                 let inicio = inputDateToISO(dataInicioEl.value.trim());
                 let fim = inputDateToISO(dataFimEl.value.trim());
 
-                // Se usuário inverteu, corrige
-                if (inicio && fim && inicio > fim) {
-                    const tmp = inicio;
-                    inicio = fim;
-                    fim = tmp;
-                }
-
-                console.log("Filtrando entre (ISO):", inicio, "e", fim);
+                if (inicio && fim && inicio > fim) [inicio, fim] = [fim, inicio];
 
                 encontrados = dados.filter(item => {
                     const d = item.dataISO || "";
-                    // exige data válida no item
-                    if (!d) return false;
-                    // intervalo inclusivo
-                    return (d >= inicio && d <= fim);
-                });
-                // ORDENAÇÃO: do menor (início) para o maior (fim)
-                encontrados.sort((a, b) => a.dataISO.localeCompare(b.dataISO));
-
+                    return d && d >= inicio && d <= fim;
+                }).sort((a, b) => a.dataISO.localeCompare(b.dataISO));
             } else {
                 const valor = inputBusca.value.trim().toLowerCase();
-
-                if (tipo === 'numero') {
-                    encontrados = dados.filter(item => (item.numero || '').toLowerCase().includes(valor));
-                } else {
-                    // 'placa'
-                    encontrados = dados.filter(item => (item.placa || '').toLowerCase().includes(valor));
-                }
+                encontrados = (tipo === 'numero')
+                    ? dados.filter(item => (item.numero || '').toLowerCase().includes(valor))
+                    : dados.filter(item => (item.placa || '').toLowerCase().includes(valor));
             }
 
-            // Atualiza resultados com a barrinha
             const resultados = document.getElementById('resultados');
             const loadingBar = document.getElementById("loading");
             let progress = 0;
@@ -508,21 +432,22 @@
                     resultados.innerHTML = encontrados.length
                         ? encontrados.map(item =>
                             `<div class="result-item">
-              <div class="result-text">
-                <strong>Placa:</strong> ${item.placa}<br />
-                <strong>Número do Auto:</strong> ${item.numero}<br />
-                <strong>Data de Cometimento:</strong> ${formatarDataBr(item.dataISO)}<br />
-                <strong>Código da Infração:</strong> ${item.codigo || '-'}
-              </div>
-              <a href="/${(item.lote || '').trim()}.pdf"
-                 class="download-link" title="Baixar PDF" download
-                 style="display: flex; align-items: center; gap: 4px;">
-                 <small style="font-size: 10px;">PDF</small>
-                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#d32f2f" viewBox="0 0 24 24">
-                   <path d="M6 2a2 2 0 0 0-2 2v16c0 1.103.897 2 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.414L18.586 9H13V3.414zM8 13h1.5v6H8v-6zm3 .5c0-.276.224-.5.5-.5h1.5a1.5 1.5 0 1 1 0 3H12v3h-1.5v-6zm1.5 2c.276 0 .5-.224.5-.5s-.224-.5-.5-.5H12v1h.5zM17 13h-2v6h2a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1zm-.5 5h-0.5v-4h0.5v4z"/>
-                 </svg>
-              </a>
-            </div>`
+                              <div class="result-text">
+                                <strong>Placa:</strong> ${item.placa}<br />
+                                <strong>Número do Auto:</strong> ${item.numero}<br />
+                                <strong>Data de Cometimento:</strong> ${formatarDataBr(item.dataISO)}<br />
+                                <strong>Código da Infração:</strong> ${item.codigo || '-'}
+                              </div>
+                              ${item.pdfLink ? `
+                              <a href="${item.pdfLink}" target="_blank"
+                                 class="download-link" title="Baixar PDF"
+                                 style="display: flex; align-items: center; gap: 4px;">
+                                 <small style="font-size: 10px;">PDF</small>
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#d32f2f" viewBox="0 0 24 24">
+                                   <path d="M6 2a2 2 0 0 0-2 2v16c0 1.103.897 2 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.414L18.586 9H13V3.414zM8 13h1.5v6H8v-6zm3 .5c0-.276.224-.5.5-.5h1.5a1.5 1.5 0 1 1 0 3H12v3h-1.5v-6zm1.5 2c.276 0 .5-.224.5-.5s-.224-.5-.5-.5H12v1h.5zM17 13h-2v6h2a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1zm-.5 5h-0.5v-4h0.5v4z"/>
+                                 </svg>
+                              </a>` : `<span style="color:gray;font-size:12px;">Sem PDF</span>`}
+                            </div>`
                         ).join('')
                         : '<div class="result-item">Nenhum resultado encontrado.</div>';
 
@@ -536,7 +461,6 @@
             alterarLabel();
         };
 
-        // Converte de AAAAMMDD para DD/MM/AAAA
         function formatarDataBr(iso) {
             if (!iso || iso.length !== 8) return iso || "-";
             const ano = iso.substring(0, 4);
@@ -546,7 +470,5 @@
         }
     </script>
 
-
 </body>
-
 </html>
