@@ -348,7 +348,7 @@
         }
 
         function carregarCSV() {
-            fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTZD4Y_N1y4eogFmOzF-2SLF47cyiCL-f6TWjd_eAhlzJds8ih9Jjmf0K-GMI22bdUtEAoQsEce4OGt/pub?output=csv')
+            fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vSAIWZyNW9vtFDsm0Qq-L_gj1oaM2vfeXU4LbjQWLTVzvRH1LroRqMik-GOeq25P8TmHUZnh2GHmUM4/pub?output=csv')
                 .then(response => response.text())
                 .then(text => {
                     dados = processarCSV(text);
@@ -472,5 +472,6 @@
 
 </body>
 </html>
+
 
 
