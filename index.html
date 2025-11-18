@@ -343,16 +343,17 @@
         }
 
         function carregarCSV() {
-            const urlCSV = 'https://docs.google.com/spreadsheets/d/1RPo2zOSfSucfBYEnBgOxtSXh8HdUT2tk8kc_v5HnGjg/export?format=csv&gid=0';
-        
-            fetch(urlCSV)
-                .then(response => response.text())
-                .then(text => {
-                    dados = processarCSV(text);
-                    console.log("Dados processados:", dados);
-                })
-                .catch(error => console.error('Erro ao carregar CSV:', error));
-        }
+    const urlCSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNP5xtXGSB2YK9s50apLumlJLk2S-HuhWqfmUQkFDmwT1Rv6FS-fl4KXmHa7oY4q9LFTQDnk60y8Te/pub?output=csv';
+
+    fetch(urlCSV)
+        .then(response => response.text())
+        .then(text => {
+            dados = processarCSV(text);
+            console.log("Dados processados:", dados);
+        })
+        .catch(error => console.error('Erro ao carregar CSV:', error));
+}
+
 
 
         function processarCSV(csv) {
@@ -470,6 +471,7 @@
 
 </body>
 </html>
+
 
 
 
